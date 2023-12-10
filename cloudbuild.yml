@@ -1,0 +1,52 @@
+gcloud artifacts repositories create quickstart-docker-repo --repository-format=docker \
+    --location=us-west1 --description="Docker repository"
+	
+	
+gcloud config set project [Project_ID]
+
+gcloud config set project qwiklabs-gcp-00-d2718017e0c9
+
+
+Step : Build Container Image and tag it. 
+
+gcloud builds submit --tag us-west1-docker.pkg.dev/${DEVSHELL_PROJECT_ID}/quickstart-docker-repo/quickstart-image:tag1
+
+##########Building containers with a build configuration file and Cloud Build###########
+git clone https://github.com/GoogleCloudPlatform/training-data-analyst
+ln -s ~/training-data-analyst/courses/ak8s/v1.1 ~/ak8s
+cd ~/ak8s/Cloud_Build/a
+
+------------------------
+cat > cloudbuild.yaml
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/quickstart-image', '.' ]
+images:
+- 'gcr.io/$PROJECT_ID/quickstart-image'
+--------------------------------------------------
+###cloudbuild.yml###
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'us-west1-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/quickstart-image:tag1', '.' ]
+images:
+- 'us-west1-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/quickstart-image:tag1'
+
+
+
+
+---------------------------------
+export REGION=us-west1
+sed -i "s/YourRegionHere/$REGION/g" cloudbuild.yaml
+
+
+gcloud builds submit --config cloudbuild.yaml
+
+
+-------cloudbuild.yaml------
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'us-west1-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/quickstart-image:tag1', '.' ]
+- name: 'gcr.io/$PROJECT_ID/quickstart-image'
+  args: ['fail']
+images:
+- 'us-west1-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/quickstart-image:tag1'
